@@ -1,4 +1,4 @@
-import { Pool, PoolClient, QueryResultRow, types } from 'pg';
+import { Pool, type PoolClient, type QueryResultRow, types } from 'pg';
 import { config } from './config';
 
 // DATE (1082) y TIME (1083) como texto: evita que pg los convierta a Date con zona horaria.

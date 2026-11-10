@@ -3,13 +3,22 @@
   "private": true,
   "version": "0.1.0",
   "description": "PesoXPeso — control de microgastos con IA para estudiantes",
-  "workspaces": ["backend"],
+  "workspaces": [
+    "backend",
+    "web"
+  ],
   "scripts": {
     "dev": "npm run dev -w backend",
-    "build": "npm run build -w backend",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build -w backend && npm run build -w web",
     "migrate": "npm run migrate -w backend",
     "test": "npm test -w backend",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w web",
+    "lint": "biome lint backend/src backend/tests web/src",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.6"
   }
 }

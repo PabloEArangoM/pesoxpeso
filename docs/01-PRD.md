@@ -21,7 +21,7 @@ Estudiantes universitarios de 18 a 28 años en Cali, Colombia, con smartphone, s
 ## 5. Diferenciación frente a competencia
 Fintonic, Bankity, BBVA coach financiero, Spendee, Mobills, etc. dependen de Open Banking (poco confiable en Colombia) o están pensadas para presupuestos familiares/compartidos. Esta app apuesta por registro 100% manual con fricción mínima, enfocada en el microgasto del estudiante individual.
 
-## 6. Alcance del MVP (Fase 1)
+## 6. Alcance del MVP (Fases 1 a 3 del roadmap)
 **Incluye:**
 - Perfil inicial: ocupación, tipo de ingreso, gastos fijos conocidos.
 - Registro manual de gasto (monto + categoría rápida) desde vista de calendario.
@@ -30,12 +30,12 @@ Fintonic, Bankity, BBVA coach financiero, Spendee, Mobills, etc. dependen de Ope
 - Gráficos básicos (total por categoría, por semana).
 - Autenticación simple (email/password).
 
-**NO incluye en el MVP (queda para Fase 2):**
-- Análisis con IA / detección de patrones.
-- Recomendaciones de ahorro en lenguaje natural.
-- Modelo freemium / cobros.
+**NO incluye en el MVP (ver fases en `07-roadmap-mvp.md`):**
+- Análisis con IA / detección de patrones (Fase 5).
+- Recomendaciones de ahorro en lenguaje natural (Fase 5).
+- Modelo freemium / cobros (Fase 6).
 - Atajo de iPhone (se prototipa en paralelo pero no bloquea el MVP web/app).
-- App nativa iOS/Android (el MVP es PWA).
+- App nativa iOS/Android (Fase 7; el MVP es PWA).
 
 ## 7. Modelo de negocio (a futuro, no en MVP)
 Freemium:

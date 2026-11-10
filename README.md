@@ -1,14 +1,27 @@
 # PesoXPeso
 
-Control de microgastos con IA para estudiantes universitarios. **Cada peso cuenta. Apúntalo.**
-
-Monorepo:
+Control de microgastos para estudiantes universitarios. **Cada peso cuenta. Apúntalo.**
 
 ```
-backend/   API REST — Node.js + TypeScript + Express + PostgreSQL   (Fase 1 ✅)
-web/       Frontend React PWA                                       (Fase 2, pendiente)
-docs/      PRD, historias, wireframes, modelo de datos, API, arquitectura, roadmap, pruebas
+backend/   API REST — Node.js + TypeScript + Express + PostgreSQL
+web/       App web instalable (PWA) — React + Vite + TypeScript
+docs/      PRD, historias, wireframes, modelo de datos, API, arquitectura, roadmap,
+           plan de pruebas, atajos, política de datos y despliegue
 ```
+
+## Qué hace
+
+- **Registro rápido:** monto y categoría en un par de toques; fecha y hora se llenan solas.
+- **Inicio:** total de hoy, de la semana y del mes, presupuesto, racha y gastos del día.
+- **Calendario** mensual con el total de cada día, y **gráficos** por categoría y por día o semana.
+- **Presupuesto** semanal y mensual, con aviso al 80% y al pasarse.
+- **Categorías propias**, además de las 5 por defecto.
+- **Gastos recurrentes** (diarios, semanales o mensuales) que se anotan solos.
+- **Racha** de días seguidos anotando y **recordatorio diario** por notificación.
+- **Atajo de iPhone o Android** con tokens personales de alcance limitado.
+- **Exportar a CSV**, verificación de correo, recuperación de contraseña y borrado de cuenta.
+
+Los montos son siempre pesos enteros: **no se aceptan decimales**.
 
 ## Arranque local
 
@@ -19,10 +32,12 @@ npm install
 cp backend/.env.example backend/.env      # y cambia los dos JWT_* por secretos largos:
                                            #   openssl rand -base64 48
 npm run db:up                              # Postgres en Docker (crea también pesoxpeso_test)
-npm run migrate                            # crea tablas y las 5 categorías
+npm run migrate                            # crea o actualiza las tablas
 npm run dev                                # API en http://localhost:3000
-npm test                                   # 17 pruebas de integración
+npm run dev:web                            # en otra terminal: app en http://localhost:5173
 ```
+
+Abre http://localhost:5173, crea una cuenta y listo. En desarrollo no hace falta configurar correo: los enlaces de verificación y de recuperación de contraseña aparecen en el log de la API.
 
 ¿Sin Docker? Con Postgres instalado:
 
@@ -31,64 +46,46 @@ sudo -u postgres psql -c "CREATE USER pxp WITH PASSWORD 'pxp' CREATEDB;" \
   -c "CREATE DATABASE pesoxpeso OWNER pxp;" -c "CREATE DATABASE pesoxpeso_test OWNER pxp;"
 ```
 
-Comprobar que vive: `curl localhost:3000/health`
+## Comandos
 
-## Endpoints (Fase 1)
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` / `npm run dev:web` | API y app web en modo desarrollo |
+| `npm test` | Pruebas de integración de la API (usan la base `pesoxpeso_test`) |
+| `npm run lint` | Linter (Biome) sobre backend y frontend |
+| `npm run typecheck` | Verificación de tipos de ambos proyectos |
+| `npm run build` | Compila la API (`backend/dist`) y la app (`web/dist`) |
+| `npm run migrate` | Aplica las migraciones pendientes |
 
-Detalle completo en [`docs/05-api-spec.md`](docs/05-api-spec.md). Todo bajo `/v1`.
+## Configuración opcional
 
-| Método | Ruta | Notas |
-|---|---|---|
-| POST | `/auth/registro`, `/auth/login`, `/auth/refresh` | JWT de 15 min + refresh de 30 días |
-| POST/GET/DELETE | `/auth/api-tokens` | Tokens personales `pxp_...` para el Atajo |
-| POST/GET/PATCH | `/perfil` | Solo sesión normal (JWT) |
-| GET | `/categorias` | |
-| POST/GET | `/gastos` | Los usa también el Atajo |
-| PATCH/DELETE | `/gastos/:id` | Solo JWT |
+Todo en `backend/.env` (ver `backend/.env.example`):
 
-## Atajo de iPhone
+- **Correo** (`SMTP_URL`, `EMAIL_FROM`): sin él, los mensajes se escriben en el log.
+- **Recordatorios** (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`): genera las llaves con `npx web-push generate-vapid-keys`. Sin ellas la app indica que los recordatorios no están disponibles; lo demás funciona.
 
-1. **Crea tu token personal** (una sola vez; se muestra una sola vez):
-   ```bash
-   curl -X POST https://TU-API/v1/auth/api-tokens \
-     -H "Authorization: Bearer TU_JWT" -H "Content-Type: application/json" \
-     -d '{"nombre":"Atajo iPhone"}'
-   ```
-2. **En la app Atajos**, crea un atajo con estas acciones (los nombres pueden variar un poco según tu versión de iOS):
-   1. *Pedir entrada* → tipo **Texto**, pregunta "¿Cuánto gastaste?" → variable `monto`.
-   2. *Elegir de la lista* → Snacks y bebidas, Domicilio, Transporte, Propina, Otro → variable `categoria`.
-   3. *Obtener contenido de URL*:
-      - URL: `https://TU-API/v1/gastos`, método **POST**
-      - Encabezados: `Authorization: Bearer pxp_TU_TOKEN` y `Content-Type: application/json`
-      - Cuerpo de la solicitud: **JSON** con `monto` (Texto → `monto`) y `categoria` (Texto → `categoria`)
-   4. *Obtener valor del diccionario* → `resumen.total_dia` → *Mostrar notificación*: "Registrado. Hoy llevas $…".
-3. Asígnalo al **botón de Acción** o agrégalo a la pantalla de inicio.
+## Documentación
 
-Detalles útiles:
-- `monto` puede ir como texto (`"18.000"`, `"$18.000"`): el API quita puntos y comas (COP no usa decimales).
-- La categoría se acepta por nombre, sin importar mayúsculas ni tildes.
-- Fecha y hora se llenan solas (zona `America/Bogota`).
-- El token del Atajo **solo** puede registrar y consultar gastos. Si pierdes el iPhone, lo revocas con `DELETE /v1/auth/api-tokens/:id` y listo.
-- Tu iPhone no llega a `localhost`: para probar antes de desplegar usa un túnel (cloudflared, ngrok) o Tailscale.
+| Tema | Archivo |
+|---|---|
+| Endpoints de la API | [`docs/05-api-spec.md`](docs/05-api-spec.md) |
+| Tablas y relaciones | [`docs/04-modelo-datos.md`](docs/04-modelo-datos.md) |
+| Decisiones técnicas | [`docs/06-arquitectura-tecnica.md`](docs/06-arquitectura-tecnica.md) |
+| Atajo de iPhone y Android | [`docs/09-atajos.md`](docs/09-atajos.md) |
+| Publicar en internet | [`docs/11-despliegue.md`](docs/11-despliegue.md) |
+| Política de tratamiento de datos (borrador) | [`docs/10-politica-tratamiento-datos.md`](docs/10-politica-tratamiento-datos.md) |
+| Qué sigue | [`docs/07-roadmap-mvp.md`](docs/07-roadmap-mvp.md) |
 
-## Despliegue (MVP)
+## Seguridad
 
-Backend + Postgres en Render/Railway/Fly.io, frontend en Vercel (revisa los planes gratuitos vigentes; los gratis suelen "dormir" el servidor y el primer registro del Atajo tarda). En producción:
+- Contraseñas con bcrypt; tokens personales y enlaces de correo guardados solo como hash.
+- Sesión: JWT de 15 minutos más refresh de 30 días, revocable al cambiar la contraseña o al cerrar sesiones.
+- Los tokens de los Atajos solo pueden registrar y consultar gastos.
+- Límite de intentos por IP en login, registro, recuperación y cambio de contraseña.
+- En producción el servidor no arranca con `CORS_ORIGIN=*`.
 
-```bash
-npm run build
-npm run migrate:prod     # aplica migraciones
-npm start --workspace backend
-```
+## Pendiente antes de usuarios reales
 
-Variables: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN` (el dominio de tu frontend), `PORT`.
-
-## Seguridad — pendientes conscientes
-
-- Los refresh tokens son stateless (no se pueden revocar antes de vencer). Si hace falta, se agrega una tabla en una fase posterior.
-- Antes de abrir a usuarios reales: política de tratamiento de datos (Ley 1581 de 2012) y HTTPS obligatorio.
-- Login y registro tienen límite de intentos por IP (`RATE_LIMIT_AUTH_MAX`).
-
-## Próximo paso
-
-Fase 2: frontend web (React PWA) — onboarding, calendario diario, modal de registro rápido y gráficos. Ver `docs/07-roadmap-mvp.md`.
+- Publicar la API y la app (`docs/11-despliegue.md`) y armar el Atajo en el teléfono.
+- Configurar un proveedor de correo y las llaves de los recordatorios.
+- Hacer revisar por un abogado la política de tratamiento de datos (Ley 1581 de 2012), que hoy es un borrador.

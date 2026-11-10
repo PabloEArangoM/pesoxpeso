@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
+import { log } from './log';
 
 export class AppError extends Error {
   constructor(
@@ -18,7 +19,7 @@ export function notFoundHandler(_req: Request, res: Response) {
   res.status(404).json({ error: { codigo: 'RUTA_NO_ENCONTRADA', mensaje: 'La ruta no existe' } });
 }
 
-export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   if (err instanceof AppError) {
     return res.status(err.status).json({ error: { codigo: err.codigo, mensaje: err.mensaje } });
   }
@@ -33,11 +34,17 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
       },
     });
   }
+  // Token de acceso aún vigente de una cuenta ya borrada: la FK a usuarios falla al insertar.
+  if ((err as any)?.code === '23503' && String((err as any)?.constraint ?? '').includes('usuario_id')) {
+    return res
+      .status(401)
+      .json({ error: { codigo: 'NO_AUTENTICADO', mensaje: 'Falta o es inválido el token de autenticación' } });
+  }
   // JSON mal formado, body muy grande, etc.
   const status = (err as any)?.status ?? (err as any)?.statusCode;
   if (status && status >= 400 && status < 500) {
     return res.status(status).json({ error: { codigo: 'PETICION_INVALIDA', mensaje: 'Petición inválida' } });
   }
-  console.error(err);
+  log.error({ err, metodo: req.method, ruta: req.originalUrl }, 'error no controlado');
   return res.status(500).json({ error: { codigo: 'ERROR_INTERNO', mensaje: 'Error interno del servidor' } });
 }

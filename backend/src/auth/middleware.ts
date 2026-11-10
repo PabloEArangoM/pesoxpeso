@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors';
 import { query } from '../db';
 import { hashApiToken, PREFIJO_API_TOKEN, verificarAcceso } from './tokens';

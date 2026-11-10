@@ -1,0 +1,40 @@
+# Plano para Render (https://render.com): API en Docker + PostgreSQL.
+# En Render: New > Blueprint > elige este repositorio. Revisa los planes y precios vigentes.
+# El frontend se publica aparte (ver docs/11-despliegue.md).
+services:
+  - type: web
+    name: pesoxpeso-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pesoxpeso-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      # Completar a mano en el panel de Render:
+      - key: CORS_ORIGIN # dominio del frontend, p. ej. https://pesoxpeso.vercel.app
+        sync: false
+      - key: APP_URL # el mismo dominio del frontend
+        sync: false
+      - key: SMTP_URL
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+
+databases:
+  - name: pesoxpeso-db
+    databaseName: pesoxpeso
+    user: pxp

@@ -8,8 +8,9 @@ export function firmarAcceso(usuarioId: string): string {
   return jwt.sign({ typ: 'access' }, config.jwtSecret, { subject: usuarioId, expiresIn: config.accessTtl as any });
 }
 
-export function firmarRefresh(usuarioId: string): string {
-  return jwt.sign({ typ: 'refresh' }, config.jwtRefreshSecret, {
+/** `version` es `usuarios.sesion_version` al momento de firmar; permite revocar sesiones. */
+export function firmarRefresh(usuarioId: string, version: number): string {
+  return jwt.sign({ typ: 'refresh', ver: version }, config.jwtRefreshSecret, {
     subject: usuarioId,
     expiresIn: config.refreshTtl as any,
   });
@@ -21,10 +22,10 @@ export function verificarAcceso(token: string): string {
   return p.sub;
 }
 
-export function verificarRefresh(token: string): string {
+export function verificarRefresh(token: string): { usuarioId: string; version: number } {
   const p = jwt.verify(token, config.jwtRefreshSecret) as jwt.JwtPayload;
-  if (p.typ !== 'refresh' || !p.sub) throw new Error('refresh token inválido');
-  return p.sub;
+  if (p.typ !== 'refresh' || !p.sub || typeof p.ver !== 'number') throw new Error('refresh token inválido');
+  return { usuarioId: p.sub, version: p.ver };
 }
 
 export function generarApiToken(): { token: string; hash: string } {
