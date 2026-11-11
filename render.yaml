@@ -5,6 +5,7 @@ services:
   - type: web
     name: pesoxpeso-api
     runtime: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
@@ -36,5 +37,6 @@ services:
 
 databases:
   - name: pesoxpeso-db
+    plan: free
     databaseName: pesoxpeso
     user: pxp
