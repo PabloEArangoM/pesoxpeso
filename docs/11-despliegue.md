@@ -6,7 +6,8 @@ Nada de esto está publicado todavía. Lo que sigue es el camino preparado en el
 
 | Pieza | Dónde | Archivo que lo define |
 |---|---|---|
-| API + PostgreSQL | Render (o Railway, Fly.io: cualquier sitio que ejecute Docker) | `Dockerfile`, `render.yaml` |
+| API | Render (o Railway, Fly.io: cualquier sitio que ejecute Docker) | `Dockerfile`, `render.yaml` |
+| PostgreSQL | Neon (su plan gratuito no vence; el Postgres gratuito de Render se borra a los 30 días) | — |
 | Frontend (PWA) | Vercel (o Netlify, Cloudflare Pages: archivos estáticos) | `web/vercel.json` |
 
 ## 1. Repositorio
@@ -15,12 +16,13 @@ Sube el repositorio a GitHub. El flujo `.github/workflows/ci.yml` ejecuta linter
 
 ## 2. API
 
-En Render: *New → Blueprint* y elige el repositorio; `render.yaml` crea el servicio y la base, y genera `JWT_SECRET` y `JWT_REFRESH_SECRET`. La imagen aplica las migraciones al arrancar.
+En Render: *New → Blueprint* y elige el repositorio; `render.yaml` crea el servicio y genera `JWT_SECRET` y `JWT_REFRESH_SECRET`. La imagen aplica las migraciones al arrancar.
 
 Variables que hay que completar a mano:
 
 | Variable | Valor |
 |---|---|
+| `DATABASE_URL` | Cadena de conexión de Neon (proyecto → *Connect*), con `sslmode=require`. |
 | `CORS_ORIGIN` | Dominio del frontend, p. ej. `https://pesoxpeso.vercel.app`. Con `*` el servidor no arranca en producción. |
 | `APP_URL` | El mismo dominio: con él se arman los enlaces de los correos. |
 | `SMTP_URL`, `EMAIL_FROM` | Servidor de correo (ver abajo). |
