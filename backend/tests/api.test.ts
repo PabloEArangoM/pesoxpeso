@@ -704,7 +704,7 @@ describe('recordatorios', () => {
 
     // todavía no es la hora: no avisa
     await pool.query(`UPDATE usuarios SET ultimo_recordatorio = NULL, recordatorio_hora = '23:59' WHERE id = $1`, [pendiente.id]);
-    expect(await enviarRecordatorios(new Date('2026-11-10T15:00:00Z'))).toBe(0);
+    expect(await enviarRecordatorios(new Date(`${hoyBogota()}T15:00:00Z`))).toBe(0);
 
     // quitar la suscripción
     const quitar = await api().delete('/v1/cuenta/push').set(auth(pendiente.token)).send({ endpoint: endpointA });
